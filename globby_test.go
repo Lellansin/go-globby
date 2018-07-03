@@ -8,15 +8,64 @@ import (
 	"reflect"
 )
 
-func TestMatch(t *testing.T) {
-	opt := Option{}
-	opt.ignoreDot = false
-	opt.baseDir = "/Users/lellansin/github/static"
-	arr := []string{ "!tmp/online-code", "tmp/*.sh" }
-	Match(arr, opt)
+/*
+ *  Test ignore .git
+ */
+func TestIgnoreDotGitFiles(t *testing.T) {
+	// Init test files
+	curDir, _ := os.Getwd()
+	tmpDir := filepath.Join(curDir, "./tmp");
+	defer os.RemoveAll(tmpDir)
+	makeTmpFiles(tmpDir, []string {
+		".git/file",
+		".gitignore",
+		"app.js",
+	})
+
+	// Match the patterns
+	files := Match([]string{ "." }, Option{ BaseDir: tmpDir })
+	// Expected match files:
+	expected := []string { "app.js" }
+	if checkFiles(tmpDir, files, expected) {
+		t.Errorf("files not match, expected %v, but got %v", expected, files)
+	}
 }
 
+/*
+ *  Match "./** /*.jpg"
+ */
+func TestMathAllImg(t *testing.T) {
+	// Init test files
+	curDir, _ := os.Getwd()
+	tmpDir := filepath.Join(curDir, "./tmp");
+	defer os.RemoveAll(tmpDir)
+	makeTmpFiles(tmpDir, []string {
+		"app.js",
+		"src/test.js",
+		"image/footer.jpg",
+		"image/logo.jpg",
+		"image/user/avatar.jpg",
+	})
+	// Match the patterns
+	files := Match([]string{
+			"./**/*.jpg",
+	}, Option{ BaseDir: tmpDir })
+	// Expected match files:
+	expected := []string { 
+		"image/footer.jpg",
+		"image/logo.jpg",
+		"image/user/avatar.jpg",
+	}
+	if checkFiles(tmpDir, files, expected) {
+		t.Errorf("files not match, expected %v, but got %v", expected, files)
+	}
+}
+
+/*
+ *  Match "src/*.js"
+ */
 func TestSignleStarFiles(t *testing.T) {
+	// Init test files
 	curDir, _ := os.Getwd()
 	tmpDir := filepath.Join(curDir, "./tmp");
 	defer os.RemoveAll(tmpDir)
@@ -31,14 +80,13 @@ func TestSignleStarFiles(t *testing.T) {
 		"src/api/test.js",
 	})
 
-	opt := Option{}
-	opt.baseDir = tmpDir
-
 	patterns := []string{
 		"src/*.js",
 	}
 
-	files := Match(patterns, opt)
+	// Match the patterns
+	files := Match(patterns, Option{ BaseDir: tmpDir })
+	// Expected match files:
 	expected := []string {
 		"src/router.js",
 		"src/store.js",
@@ -52,6 +100,7 @@ func TestSignleStarFiles(t *testing.T) {
  *  Match "src/api"
  */
 func TestDirMatch(t *testing.T) {
+	// Init test files
 	curDir, _ := os.Getwd()
 	tmpDir := filepath.Join(curDir, "./tmp");
 	defer os.RemoveAll(tmpDir)
@@ -66,13 +115,13 @@ func TestDirMatch(t *testing.T) {
 		"src/api/test.js",
 	})
 
-	opt := Option{}
-	opt.baseDir = tmpDir
 	patterns := []string{
 		"src/api",
 	}
 
-	files := Match(patterns, opt)
+	// Match the patterns
+	files := Match(patterns, Option{ BaseDir: tmpDir })
+	// Expected match files:
 	expected := []string {
 		"src/api/home.js",
 		"src/api/user.js",
@@ -87,6 +136,7 @@ func TestDirMatch(t *testing.T) {
  *  Match "/**" + "/*"
  */
 func TestDirStar(t *testing.T) {
+	// Init test files
 	curDir, _ := os.Getwd()
 	tmpDir := filepath.Join(curDir, "./tmp");
 	defer os.RemoveAll(tmpDir)
@@ -101,13 +151,13 @@ func TestDirStar(t *testing.T) {
 		"src/api/test.js",
 	})
 
-	opt := Option{}
-	opt.baseDir = tmpDir
 	patterns := []string{
 		"src/**/*",
 	}
 
-	files := Match(patterns, opt)
+	// Match the patterns
+	files := Match(patterns, Option{ BaseDir: tmpDir })
+	// Expected match files:
 	expected := []string {
 		"src/router.js",
 		"src/store.js",
@@ -124,6 +174,7 @@ func TestDirStar(t *testing.T) {
  *  Match "/**" + "/*.js"
  */
 func TestDirStar2(t *testing.T) {
+	// Init test files
 	curDir, _ := os.Getwd()
 	tmpDir := filepath.Join(curDir, "./tmp");
 	defer os.RemoveAll(tmpDir)
@@ -139,13 +190,13 @@ func TestDirStar2(t *testing.T) {
 		"src/api/test.js",
 	})
 
-	opt := Option{}
-	opt.baseDir = tmpDir
 	patterns := []string{
 		"src/**/*.js",
 	}
 
-	files := Match(patterns, opt)
+	// Match the patterns
+	files := Match(patterns, Option{ BaseDir: tmpDir })
+	// Expected match files:
 	expected := []string {
 		"src/router.js",
 		"src/store.js",
@@ -163,6 +214,7 @@ func TestDirStar2(t *testing.T) {
  * ignore files in the match items 
  */
 func TestDirIgnoreFile(t *testing.T) {
+	// Init test files
 	curDir, _ := os.Getwd()
 	tmpDir := filepath.Join(curDir, "./tmp");
 	defer os.RemoveAll(tmpDir)
@@ -181,14 +233,14 @@ func TestDirIgnoreFile(t *testing.T) {
 		"src/service/test.js",
 	})
 
-	opt := Option{}
-	opt.baseDir = tmpDir
 	patterns := []string{
 		"src/**/*.js",
 		"!src/service/home.js",
 	}
 
-	files := Match(patterns, opt)
+	// Match the patterns
+	files := Match(patterns, Option{ BaseDir: tmpDir })
+	// Expected match files:
 	expected := []string {
 		"src/router.js",
 		"src/store.js",
@@ -208,6 +260,7 @@ func TestDirIgnoreFile(t *testing.T) {
  * ignore dir in the match items 
  */
 func TestDirIgnoreDir(t *testing.T) {
+	// Init test files
 	curDir, _ := os.Getwd()
 	tmpDir := filepath.Join(curDir, "./tmp");
 	defer os.RemoveAll(tmpDir)
@@ -226,14 +279,14 @@ func TestDirIgnoreDir(t *testing.T) {
 		"src/service/test.js",
 	})
 
-	opt := Option{}
-	opt.baseDir = tmpDir
 	patterns := []string{
 		"src/**/*.js",
 		"!src/service",
 	}
 
-	files := Match(patterns, opt)
+	// Match the patterns
+	files := Match(patterns, Option{ BaseDir: tmpDir })
+	// Expected match files:
 	expected := []string {
 		"src/router.js",
 		"src/store.js",

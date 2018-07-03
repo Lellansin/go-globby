@@ -8,11 +8,15 @@ import (
 )
 
 type Option struct {
-	baseDir string
-	ignoreDot bool
+	BaseDir string
+	CheckDot bool
+	RelativeReturn bool
 	excludes []string
 }
 
+/*
+ * Glob all patterns
+ */
 func Match(patterns []string, opt Option) []string {
 	var allFiles []string
 	patterns, opt, err := completeOpt(patterns, opt)
@@ -43,6 +47,7 @@ func find(pattern string, opt Option) *[] string {
 	return nil
 }
 
+// find under centain directory
 func findDir(pattern string, opt Option) *[]string {
 	var list []string
 	files, err := filepath.Glob(pattern)
@@ -50,13 +55,24 @@ func findDir(pattern string, opt Option) *[]string {
 		fmt.Printf("err: [%v]\n", err)
 		return &list
 	}
-	list = append(list, files...)
+	for _, fullpath := range files {
+		path, err := filepath.Rel(opt.BaseDir, fullpath)
+		if err != nil {
+			continue
+		}
+		if checkExclude(opt, path) {
+			continue
+		}
+		if opt.RelativeReturn {
+			list = append(list, path)
+		} else {
+			list = append(list, fullpath)
+		}
+	}
 	return &list
 }
 
-/*
- * find recr
- */
+// find recursively
 func findRecr(pattern string, opt Option) *[]string {
 	dir := strReplace(pattern, "\\*\\*.+", "");
 	afterMacth := ""
@@ -68,22 +84,28 @@ func findRecr(pattern string, opt Option) *[]string {
 
 	var list []string
 	err := filepath.Walk(dir, func (fullpath string, f os.FileInfo, err error) error {
-		if f.IsDir() && regexTest("^\\.", f.Name()) {
-        return filepath.SkipDir
+		if !opt.CheckDot && regexTest("^\\.", f.Name()) {
+        if f.IsDir() {
+        	return filepath.SkipDir
+      	}
+      	return nil
     }
     if f.IsDir() {
     	return nil
     }
-		path, _ := filepath.Rel(opt.baseDir, fullpath)
+		path, _ := filepath.Rel(opt.BaseDir, fullpath)
 		if checkExclude(opt, path) {
 			return nil
 		}
+		if !opt.RelativeReturn {
+			path = fullpath
+		}
 		if !matchAfterFlag {
-			list = append(list, fullpath);
+			list = append(list, path);
 			return nil
 		}
 		if regexTest(afterMacth + "$", path) {
-			list = append(list, fullpath)
+			list = append(list, path)
 		}
 		return nil
 	})
@@ -93,11 +115,15 @@ func findRecr(pattern string, opt Option) *[]string {
 	return &list
 }
 
+// check and complete the options
 func completeOpt(srcPatterns []string, opt Option) ([]string, Option, error) {
-	// TODO: default base dir    config dir > file dir > pwd
-	// if len(opt.baseDir) == 0 {
-	// 	opt.baseDir = os.
-	// }
+	if len(opt.BaseDir) == 0 {
+		curDir, err := os.Getwd()
+		if err != nil {
+			panic(err)
+		}
+		opt.BaseDir = curDir
+	}
 
 	var patterns []string
 	for _, pattern := range srcPatterns {
@@ -109,7 +135,7 @@ func completeOpt(srcPatterns []string, opt Option) ([]string, Option, error) {
 		}
 		if regexTest("^\\.", pattern) || // like ./dist
 			 !regexTest("^\\/", pattern) { // like dist
-			patterns = append(patterns, filepath.Join(opt.baseDir, pattern))
+			patterns = append(patterns, filepath.Join(opt.BaseDir, pattern))
 			continue;
 		}
 		patterns = append(patterns, pattern)
@@ -117,6 +143,7 @@ func completeOpt(srcPatterns []string, opt Option) ([]string, Option, error) {
 	return patterns, opt, nil
 }
 
+// check if path should be excluded
 func checkExclude(opt Option, path string) bool {
 	// if exludes dirs
 	for _, exclude := range opt.excludes {
@@ -133,6 +160,7 @@ func checkExclude(opt Option, path string) bool {
 	return false
 }
 
+// Check if regex match the "src" string
 func regexTest(re string, src string) bool {
 		matched, err := regexp.MatchString(re, src)
 		if err != nil {
@@ -144,6 +172,7 @@ func regexTest(re string, src string) bool {
 		return false;
 }
 
+// "dest" replace "text" pattern with "repl"
 func strReplace(dest, text, repl string) string {
 	re := regexp.MustCompile(text)
 	return re.ReplaceAllString(dest, repl)
