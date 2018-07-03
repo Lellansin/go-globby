@@ -2,10 +2,10 @@ package globby
 
 import (
 	"os"
-	"testing"
 	"path/filepath"
-	"sort"
 	"reflect"
+	"sort"
+	"testing"
 )
 
 /*
@@ -14,18 +14,18 @@ import (
 func TestIgnoreDotGitFiles(t *testing.T) {
 	// Init test files
 	curDir, _ := os.Getwd()
-	tmpDir := filepath.Join(curDir, "./tmp");
+	tmpDir := filepath.Join(curDir, "./tmp")
 	defer os.RemoveAll(tmpDir)
-	makeTmpFiles(tmpDir, []string {
+	makeTmpFiles(tmpDir, []string{
 		".git/file",
 		".gitignore",
 		"app.js",
 	})
 
 	// Match the patterns
-	files := Match([]string{ "." }, Option{ BaseDir: tmpDir })
+	files := Match([]string{"."}, Option{BaseDir: tmpDir})
 	// Expected match files:
-	expected := []string { "app.js" }
+	expected := []string{"app.js"}
 	if checkFiles(tmpDir, files, expected) {
 		t.Errorf("files not match, expected %v, but got %v", expected, files)
 	}
@@ -37,9 +37,9 @@ func TestIgnoreDotGitFiles(t *testing.T) {
 func TestMathAllImg(t *testing.T) {
 	// Init test files
 	curDir, _ := os.Getwd()
-	tmpDir := filepath.Join(curDir, "./tmp");
+	tmpDir := filepath.Join(curDir, "./tmp")
 	defer os.RemoveAll(tmpDir)
-	makeTmpFiles(tmpDir, []string {
+	makeTmpFiles(tmpDir, []string{
 		"app.js",
 		"src/test.js",
 		"image/footer.jpg",
@@ -48,10 +48,10 @@ func TestMathAllImg(t *testing.T) {
 	})
 	// Match the patterns
 	files := Match([]string{
-			"./**/*.jpg",
-	}, Option{ BaseDir: tmpDir })
+		"./**/*.jpg",
+	}, Option{BaseDir: tmpDir})
 	// Expected match files:
-	expected := []string { 
+	expected := []string{
 		"image/footer.jpg",
 		"image/logo.jpg",
 		"image/user/avatar.jpg",
@@ -67,9 +67,9 @@ func TestMathAllImg(t *testing.T) {
 func TestSignleStarFiles(t *testing.T) {
 	// Init test files
 	curDir, _ := os.Getwd()
-	tmpDir := filepath.Join(curDir, "./tmp");
+	tmpDir := filepath.Join(curDir, "./tmp")
 	defer os.RemoveAll(tmpDir)
-	makeTmpFiles(tmpDir, []string {
+	makeTmpFiles(tmpDir, []string{
 		".git",
 		"app.js",
 		"package.json",
@@ -85,9 +85,9 @@ func TestSignleStarFiles(t *testing.T) {
 	}
 
 	// Match the patterns
-	files := Match(patterns, Option{ BaseDir: tmpDir })
+	files := Match(patterns, Option{BaseDir: tmpDir})
 	// Expected match files:
-	expected := []string {
+	expected := []string{
 		"src/router.js",
 		"src/store.js",
 	}
@@ -102,9 +102,9 @@ func TestSignleStarFiles(t *testing.T) {
 func TestDirMatch(t *testing.T) {
 	// Init test files
 	curDir, _ := os.Getwd()
-	tmpDir := filepath.Join(curDir, "./tmp");
+	tmpDir := filepath.Join(curDir, "./tmp")
 	defer os.RemoveAll(tmpDir)
-	makeTmpFiles(tmpDir, []string {
+	makeTmpFiles(tmpDir, []string{
 		".git",
 		"app.js",
 		"package.json",
@@ -120,9 +120,9 @@ func TestDirMatch(t *testing.T) {
 	}
 
 	// Match the patterns
-	files := Match(patterns, Option{ BaseDir: tmpDir })
+	files := Match(patterns, Option{BaseDir: tmpDir})
 	// Expected match files:
-	expected := []string {
+	expected := []string{
 		"src/api/home.js",
 		"src/api/user.js",
 		"src/api/test.js",
@@ -138,9 +138,9 @@ func TestDirMatch(t *testing.T) {
 func TestDirStar(t *testing.T) {
 	// Init test files
 	curDir, _ := os.Getwd()
-	tmpDir := filepath.Join(curDir, "./tmp");
+	tmpDir := filepath.Join(curDir, "./tmp")
 	defer os.RemoveAll(tmpDir)
-	makeTmpFiles(tmpDir, []string {
+	makeTmpFiles(tmpDir, []string{
 		".git",
 		"app.js",
 		"package.json",
@@ -156,9 +156,9 @@ func TestDirStar(t *testing.T) {
 	}
 
 	// Match the patterns
-	files := Match(patterns, Option{ BaseDir: tmpDir })
+	files := Match(patterns, Option{BaseDir: tmpDir})
 	// Expected match files:
-	expected := []string {
+	expected := []string{
 		"src/router.js",
 		"src/store.js",
 		"src/api/home.js",
@@ -176,9 +176,9 @@ func TestDirStar(t *testing.T) {
 func TestDirStar2(t *testing.T) {
 	// Init test files
 	curDir, _ := os.Getwd()
-	tmpDir := filepath.Join(curDir, "./tmp");
+	tmpDir := filepath.Join(curDir, "./tmp")
 	defer os.RemoveAll(tmpDir)
-	makeTmpFiles(tmpDir, []string {
+	makeTmpFiles(tmpDir, []string{
 		".git",
 		"app.js",
 		"package.json",
@@ -195,9 +195,9 @@ func TestDirStar2(t *testing.T) {
 	}
 
 	// Match the patterns
-	files := Match(patterns, Option{ BaseDir: tmpDir })
+	files := Match(patterns, Option{BaseDir: tmpDir})
 	// Expected match files:
-	expected := []string {
+	expected := []string{
 		"src/router.js",
 		"src/store.js",
 		"src/api/home.js",
@@ -211,14 +211,14 @@ func TestDirStar2(t *testing.T) {
 
 /*
  * Match "/**" + "/*.js"
- * ignore files in the match items 
+ * ignore files in the match items
  */
 func TestDirIgnoreFile(t *testing.T) {
 	// Init test files
 	curDir, _ := os.Getwd()
-	tmpDir := filepath.Join(curDir, "./tmp");
+	tmpDir := filepath.Join(curDir, "./tmp")
 	defer os.RemoveAll(tmpDir)
-	makeTmpFiles(tmpDir, []string {
+	makeTmpFiles(tmpDir, []string{
 		".git",
 		"app.js",
 		"package.json",
@@ -239,9 +239,9 @@ func TestDirIgnoreFile(t *testing.T) {
 	}
 
 	// Match the patterns
-	files := Match(patterns, Option{ BaseDir: tmpDir })
+	files := Match(patterns, Option{BaseDir: tmpDir})
 	// Expected match files:
-	expected := []string {
+	expected := []string{
 		"src/router.js",
 		"src/store.js",
 		"src/api/home.js",
@@ -257,14 +257,14 @@ func TestDirIgnoreFile(t *testing.T) {
 
 /*
  * Match "/**" + "/*.js"
- * ignore dir in the match items 
+ * ignore dir in the match items
  */
 func TestDirIgnoreDir(t *testing.T) {
 	// Init test files
 	curDir, _ := os.Getwd()
-	tmpDir := filepath.Join(curDir, "./tmp");
+	tmpDir := filepath.Join(curDir, "./tmp")
 	defer os.RemoveAll(tmpDir)
-	makeTmpFiles(tmpDir, []string {
+	makeTmpFiles(tmpDir, []string{
 		".git",
 		"app.js",
 		"package.json",
@@ -285,9 +285,9 @@ func TestDirIgnoreDir(t *testing.T) {
 	}
 
 	// Match the patterns
-	files := Match(patterns, Option{ BaseDir: tmpDir })
+	files := Match(patterns, Option{BaseDir: tmpDir})
 	// Expected match files:
-	expected := []string {
+	expected := []string{
 		"src/router.js",
 		"src/store.js",
 		"src/api/home.js",
@@ -319,5 +319,5 @@ func checkFiles(baseDir string, resultFiles []string, expectedFiles []string) bo
 	}
 	sort.Sort(sort.Reverse(sort.StringSlice(resultFiles)))
 	sort.Sort(sort.Reverse(sort.StringSlice(expected)))
-	return !reflect.DeepEqual(resultFiles, expected);
+	return !reflect.DeepEqual(resultFiles, expected)
 }

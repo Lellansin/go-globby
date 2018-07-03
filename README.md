@@ -42,7 +42,7 @@ func main() {
 	// opt := globby.Option{ baseDir: "/fullpath/to/your/project" }
 	opt := globby.Option{
 		BaseDir: "/path/to/your/project", // default is os.Getwd()
-		RelativeReturn: true, // default is false
+		RelativeReturn: true,             // default is false
 	}
 
 	matches := globby.Match(patterns, opt)
